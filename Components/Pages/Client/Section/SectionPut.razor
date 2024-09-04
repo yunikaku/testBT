@@ -1,0 +1,65 @@
+﻿@page "/client/section/put/{ID:int}"
+@using testBT.Models;
+<h3>SectionPut</h3>
+
+<EditForm Model="@sections" OnValidSubmit="Updatesubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="SectionId">SectionId</label>
+        <label>@sections.SectionId</label>
+    </div>
+    <div class="form-group">
+        <label for="SectionName">SectionName</label>
+        <InputText id="SectionName" class="form-control" @bind-Value="sections.SectionName" />
+    </div>
+    <div class="form-group">
+        <label for="DepartmentId">DepartmentId</label>
+        <InputSelect id="DepartmentId" class="form-control" @bind-Value="sections.DepartmentId">
+            @foreach (var department in departments)
+            {
+                <option value="@department.DepartmentId">@department.DepartmentName</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="SectionSlackId">SectionSlackId</label>
+        <InputText id="SectionSlackId" class="form-control" @bind-Value="sections.SectionSlackId" />
+    </div>
+    <div class="form-group">
+        <label for="SectionSlackURL">SectionSlackURL</label>
+        <InputText id="SectionSlackURL" class="form-control" @bind-Value="sections.SectionSlakUrl" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">更新</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int ID { get; set; }
+    [Inject]
+    private InterfaceAPI InterfaceAPI { get; set; }
+    private Section sections = new Section();
+    private List<Department> departments = new List<Department>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await InterfaceAPI.GetDepartments(new SearchDepartment() );
+        sections = await InterfaceAPI.PutgetSection(ID);
+    }
+    private async void Updatesubmit()
+    {
+        bool updateFlg = await InterfaceAPI.PutSection(sections);
+        if (updateFlg)
+        {
+            await Application.Current.MainPage.DisplayAlert("更新完了", "セクションを更新しました", "OK");
+
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("更新失敗", "セクションの更新に失敗しました", "OK");
+        }
+    }
+
+}

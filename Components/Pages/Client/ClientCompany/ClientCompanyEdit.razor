@@ -1,0 +1,70 @@
+﻿@page "/client/company/edit/{Id:int}"
+@using testBT.Models;
+
+
+<h3>ClientCompanyEdit</h3>
+
+<h2>@Id</h2>
+
+ <EditForm Model="@putClientCompany" OnValidSubmit="Putsubmit">
+    
+    <div>
+        <label for="Id" >ID</label>
+        <label>@putClientCompany.ClientCompanyId</label>
+    </div>
+    <div>
+        <label for="ClientCompanyName">ClientCompanyName</label>
+        <InputText id="ClientCompanyName" class="form-control" @bind-Value="putClientCompany.ClientCompanyName" />
+    </div>
+    <div>
+        <label for="ClientCompanyEmail">ClientCompanyEmail</label>
+        <InputText id="ClientCompanyEmail" class="form-control" @bind-Value="putClientCompany.ClientCompanyEmail" />
+    </div>
+    <div>
+        <label for="ClientCompanyPhoneNumber">ClientCompanyPhoneNumber</label>
+        <InputText id="ClientCompanyPhoneNumber" class="form-control" @bind-Value="putClientCompany.ClientCompanyPhoneNumber" />
+    </div>
+    <div>
+        <label for="ClientCompanyAddress">ClientCompanyAddress</label>
+        <InputText id="ClientCompanyAddress" class="form-control" @bind-Value="putClientCompany.ClientCompanyAddress" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+
+</EditForm> 
+
+
+
+@code {
+
+    private ClientCompany putClientCompany = new ClientCompany();
+    
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+    [Inject]
+    NavigationManager NavigationManager { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        putClientCompany = await InterfaceAPI.PutgetClientCompany(Id);
+    }
+
+    private async void Putsubmit()
+    {
+        bool result = await InterfaceAPI.PutClientCompany(putClientCompany);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Updated", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Failed to update", "OK");
+        }
+    }
+
+}

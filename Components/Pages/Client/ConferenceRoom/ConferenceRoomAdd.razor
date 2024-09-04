@@ -1,0 +1,47 @@
+﻿@page "/client/conferenceroom/add"
+@using testBT.Models;
+
+<h3>ConferenceRoomAdd</h3>
+
+<EditForm Model="@postConferenceRoom" OnValidSubmit="Addsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <InputText id="Name" class="form-control" @bind-Value="postConferenceRoom.ConferenceRoomName" />
+    </div>
+    <div class="form-group">
+        <label for="Capacity">Capacity</label>
+        <InputNumber id="Capacity" class="form-control" @bind-Value="postConferenceRoom.ConferenceRoomCapacity" />
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+</EditForm>
+
+@code {
+
+    private PostConferenceRoom postConferenceRoom = new PostConferenceRoom();//追加するConferenceRoom
+    private UserInfo userInfo = new UserInfo();//ユーザー情報
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+
+    private async void Addsubmit()
+    {
+
+        // userInfo = await InterfaceAPI.GetUserDate();
+        postConferenceRoom.UpdateUserId = "433f6e0c-ecc2-498a-8a19-9775acf8b464";
+
+        bool result = await InterfaceAPI.AddConferenceRoom(postConferenceRoom);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Added", "OK");
+
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Failed to add", "OK");
+        }
+    }
+
+}

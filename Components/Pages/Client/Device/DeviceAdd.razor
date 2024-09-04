@@ -1,0 +1,46 @@
+﻿@page "/client/device/add"
+
+@using testBT.Models;
+
+<h3>DeviceAdd</h3>
+
+<EditForm Model="@postDevice" OnValidSubmit="Addsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name">DeviceName</label>
+        <InputText id="Name" class="form-control" @bind-Value="postDevice.DeviceName" />
+    </div>
+
+    <div class="form-group">
+        <label for="Type">DeviceLocation</label>
+        <InputText id="DeviceLocation" class="form-control" @bind-Value="postDevice.DeviceLocation" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add</button>
+</EditForm>
+
+@code {
+    private PostDevice postDevice = new PostDevice();//追加するDevice
+    private UserInfo userInfo = new UserInfo();//ユーザー情報
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+    private async void Addsubmit()
+    {
+        userInfo = await InterfaceAPI.GetUserDate();
+        postDevice.DeviceUpdateUserID = userInfo.Id;
+
+        bool result = await InterfaceAPI.AddDevice(postDevice);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Failed to add", "OK");
+        }
+    }
+
+}

@@ -1,0 +1,94 @@
+﻿@page "/client/user/add"
+@using testBT.Models;
+
+<h3>UserAdd</h3>
+
+<EditForm Model="@postUser" OnValidSubmit="UserAddSubmit">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="UserName">UserName</label>
+        <InputText id="UserName" class="form-control" @bind-Value="postUser.UserName" />
+    </div>
+    <div class="form-group">
+        <label for="UserName">UserNameKana</label>
+        <InputText id="UserNameKana" class="form-control" @bind-Value="postUser.UserNameKana" />
+    </div>
+    
+        <div>
+            <label for="ClientCompanyId">ClientCompanyId</label>
+            <InputSelect id="ClientCompanyId" class="form-select" @bind-Value="postUser.UserGender">
+                @foreach (var gender in genderList )
+                {
+                    <option value="@gender">@gender</option>
+                }
+            </InputSelect>
+        </div>
+
+
+    
+
+    <div class="form-group">
+        <label for="Password">Password</label>
+        <InputText id="Password" class="form-control" @bind-Value="postUser.Password" />
+    </div>
+
+    <div class="form-group">
+        <label for="Email">Email</label>
+        <InputText id="Email" class="form-control" @bind-Value="postUser.Email" />
+    </div>
+
+    <div class="form-group">
+        <label for="Role">Role</label>
+        <InputText id="Role" class="form-control" @bind-Value="postUser.Role" />
+    </div>
+    <div class="form-group">
+        <label for="Slak_ID">Slak_ID</label>
+        <InputText id="Slak_ID" class="form-control" @bind-Value="postUser.Slak_ID" />
+    </div>
+    <div class="form-group">
+        <label for="Slak_URL">Slak_URL</label>
+        <InputText id="Slak_URL" class="form-control" @bind-Value="postUser.Slak_URL" />
+    </div>
+    <div class="form-group">
+        <label for="UserAddress">UserAddress</label>
+        <InputText id="UserAddress" class="form-control" @bind-Value="postUser.UserAddress" />
+    </div>
+    <div class="form-group">
+        <label for="UserIndustry" ">UserIndustry"</label>
+        <InputText id="UserIndustry" class="form-control" @bind-Value="postUser.UserIndustry" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add User</button>
+
+</EditForm>
+
+
+@code {
+    private PostUser postUser = new PostUser();
+    private List<string> genderList = new List<string> { "男", "女" };
+    private UserInfo userInfo = new UserInfo();
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+    InterfaceAPI api {get; set;}
+
+    private async void UserAddSubmit()
+    {
+        userInfo = await api.GetUserDate();
+        postUser.UserUpdataUserId = userInfo.Id;
+        bool result = await api.Register(postUser);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "User added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Failed to add user", "OK");
+            NavigationManager.NavigateTo("/client/user/add");
+        }
+    }
+
+}

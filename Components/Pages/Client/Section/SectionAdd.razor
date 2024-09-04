@@ -1,0 +1,68 @@
+﻿@page "/client/section/add"
+@using testBT.Models
+
+
+<h3>SectionAdd</h3>
+
+
+<EditForm Model="@postSection" OnValidSubmit="Addsubmit">
+
+    <div>
+        <label for="SectionName">SectionName</label>
+        <InputText id="SectionName" class="form-control" @bind-Value="postSection.SectionName" />
+    </div>
+
+    <div>
+        <label for="SectionNameKana">SectionSlakId</label>
+        <InputText id="SectionSlakId" class="form-control" @bind-Value="postSection.SectionSlakId" />
+    </div>
+
+    <div>
+        <label for="SectionNameShort">SectionSlackUrl</label>
+        <InputText id="SectionSlackUrl" class="form-control" @bind-Value="postSection.SectionSlackUrl" />
+    </div>
+
+    <div>
+        <label for="DepartmentId">DepartmentId</label>
+        <InputSelect id="DepartmentId" class="form-select" @bind-Value="postSection.DepartmentId" >
+            @foreach (var department in departments)
+            {
+                <option value="@department.DepartmentId">@department.DepartmentName</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add</button>
+
+</EditForm>
+
+@code {
+
+    private PostSection postSection = new PostSection();
+    private List<Department> departments = new List<Department>();
+    
+
+    
+    [Inject]
+    InterfaceAPI interfaceAPI { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await interfaceAPI.GetDepartments(new SearchDepartment());
+    }
+
+    private async Task Addsubmit()
+    {
+        var result = await interfaceAPI.AddSection(postSection);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Section Added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Section Not Added", "OK");
+        }
+
+    }
+
+}

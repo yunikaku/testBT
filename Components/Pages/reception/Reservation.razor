@@ -1,0 +1,205 @@
+﻿@page "/reception/reservation"
+@using Plugin.BLE;
+@using Plugin.BLE.Abstractions.Contracts;
+@using Plugin.BLE.Abstractions;
+@using Plugin.BLE.Abstractions.EventArgs;
+@using System.Net.Http;
+@using System.Net.Http.Json;
+@using System.Text;
+@using System.Text.Json;
+@using System.Threading.Tasks;
+@inject interfacePreferences preferences;
+@inject HttpClient Http;
+@inject IBluetoothLE ble;
+@inject IAdapter adapter;
+<h1>Reservation</h1>
+
+<h1>QRコードを読み込ませてください</h1>
+ここにカメラの映像を表示
+QRコードを読み込んだら読み込んだ予約番号をインプットに入力して検索ボタンを押す
+
+<h1>または予約番号を入力してください</h1>
+<input type="text" id="reservationNumber" name="reservationNumber" value="予約番号を入力してください">
+
+<button @onclick="()=>reservationPage()">検索</button>
+
+ポップアップで予約情報を表示　
+予約情報があれば、予約情報を表示し、予約情報がなければ、予約情報がない旨を表示
+ポップアップ下部に確認ボタンを配置
+確認ボタンが押されると担当者のSlakにDM
+ポップアップ画面を飛び出し中にする
+ゲスト用NFCカードにゲストIDをひも付けてからNFCカードを排出
+
+
+<button @onclick="()=>HomePage()">戻る</button>
+
+<h1>actiono @Text</h1>
+
+
+@code 
+{
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    private string Text;
+    private EmployeeReservation employeeReservations;
+    private string reservationNumber;
+
+    private void HomePage()
+    {
+        NavigationManager.NavigateTo("/");
+
+    }
+    private async void reservationPage()
+    {
+        try
+        {
+            //APIを叩いて予約情報を取得(ここでゲストIDを取得)
+            employeeReservations = await Get();
+            //予約情報があるか判定(なければcatchに飛ぶ)
+            bool action = await Application.Current.MainPage.DisplayAlert("予約情報", "予約情報", "Cancel", "OK");
+            if (action==true)
+            {
+
+                //BTが接続されているか確認
+                var ble = CrossBluetoothLE.Current;
+                var adapter = CrossBluetoothLE.Current.Adapter;
+                IReadOnlyList<IDevice> list= adapter.GetSystemConnectedOrPairedDevices();
+                if (list.Count > 0)
+                {
+                    //ESP32からNFCカードのUIDを取得
+                    IDevice device=null;
+                    var deviceName = preferences.LoadData("BTDeviceID(MAC)");
+                    foreach (var devices in list)//接続されているデバイスの中から指定したデバイスを取得
+                    {
+                        if(devices.Id==Guid.Parse(deviceName))
+                        {
+                            device = devices;
+                            break;
+                        }
+                    }
+                    var services = await device.GetServicesAsync();
+                    var NFCUID= "";
+                    foreach (var service in services)//サービスの中から指定したサービスを取得
+                    {
+                        if (service.Id == Guid.Parse(preferences.LoadData("ServiceUUID")))
+                        {
+                            var characteristics = await service.GetCharacteristicsAsync();
+                            foreach (var characteristic in characteristics)//キャラクタリスティックの中から指定したキャラクタリスティックを取得
+                            {
+                                if (characteristic.Id == Guid.Parse(preferences.LoadData("CharacteristicUUID")))
+                                {
+                                    var (data,code) = await characteristic.ReadAsync();
+                                    NFCUID = BitConverter.ToString(data);
+                                }
+                            }
+                            break;
+                        }
+
+                    }
+                    //APIを叩いてNFCテーブルにゲストIDをひも付け
+                    SetNfc setNfc = new SetNfc()
+                    {
+                        CardUid = NFCUID,
+                        UserId = "",
+                        ClientCompanyEmployeesId = employeeReservations.ClientCompanyEmployeesId,
+                        NfcPayload = ""
+
+                    };
+                    bool NFC = await NFCPut(setNfc);
+                    if(NFC!=true)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("エラー", "NFCカードのひも付けに失敗しました", "OK");
+                    }
+                    else
+                    {
+                        //NFCカードを排出
+                        //SlakにDM
+                        await Application.Current.MainPage.DisplayAlert("Slak", "呼び出し中", "OK");  
+                    }
+                    
+                }
+                await Application.Current.MainPage.DisplayAlert("BT", "BTが接続されているか確認して下さい", "OK");
+
+
+            }
+            Text=action.ToString();
+
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("Not Found"))
+            {
+                await Application.Current.MainPage.DisplayAlert("エラー", "予約情報がありません", "OK");
+            }
+
+            await Application.Current.MainPage.DisplayAlert("エラー", ex.Message, "OK");
+
+        }
+
+
+
+    }
+    private async Task<EmployeeReservation>  Get()
+    {
+        var response = await Http.GetAsync(("EmployeeReservations?EmployeeReservationsId=" + reservationNumber + "&Qr={}"));
+        if (response.IsSuccessStatusCode)
+        {
+            var employeeReservations = await response.Content.ReadFromJsonAsync<EmployeeReservation>();
+            return employeeReservations;
+
+        }
+        else
+        {
+            throw new Exception(response.ReasonPhrase);
+        }
+
+    }
+    private async Task<bool> NFCPut(SetNfc setNfc)
+    {
+        var json = JsonSerializer.Serialize(setNfc);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await Http.PutAsync("Nfcs/NFCset",content);
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            throw new Exception(response.ReasonPhrase);
+        }
+    }
+
+    public class EmployeeReservation
+    {
+        public int EmployeeReservationsId { get; set; }
+
+        public string UserId { get; set; }
+
+        public int ClientCompanyEmployeesId { get; set; }
+
+        public string UserName { get; set; }
+
+        public string ClientCompanyEmployeesName { get; set; }
+
+        public byte[] Qr { get; set; }
+
+        public string CompleteFlag { get; set; }
+
+        public DateTime ReservationsTime { get; set; }
+
+        public string Requirement { get; set; }
+    }
+
+    public class SetNfc
+    {
+        public string CardUid { get; set; }
+
+        public string? UserId { get; set; }
+
+        public int? ClientCompanyEmployeesId { get; set; }
+
+        public string NfcPayload { get; set; }
+
+    }
+}

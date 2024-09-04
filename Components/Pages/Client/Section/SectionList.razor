@@ -1,0 +1,122 @@
+﻿@page "/client/section/list"
+@using testBT.Models;
+
+<h3>SectionList</h3>
+
+<EditForm Model="@searchSection" OnValidSubmit="SearchSection">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group col-md-4">
+        <label for="inputSectionId">SectionId</label>
+        <InputNumber id="inputSectionId" class="form-control" @bind-Value="searchSection.SectionId" />
+    </div>
+    
+    <div class="form-group col-md-4">
+        <label for="inputSectionName">SectionName</label>
+        <InputText id="inputSectionName" class="form-control" @bind-Value="searchSection.SectionName" />
+    </div>
+
+    <div class="form-group col-md-4">
+        <label for="inputDepartmentId">DepartmentId</label>
+        <InputNumber id="inputDepartmentId" class="form-control" @bind-Value="searchSection.DepartmentId" />
+    </div>
+
+    <div class="form-group col-md-4">
+        <label for="inputDepartmentName">DepartmentName</label>
+        <InputText id="inputDepartmentName" class="form-control" @bind-Value="searchSection.DepartmentName" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Search</button>
+
+</EditForm>
+
+<br />
+<button @onclick="()=>AddSection()">部署追加</button>
+<br />
+
+<table class="table">
+    <thend>
+        <tr>
+            <th>SectionId</th>
+            <th>SectionName</th>
+            <th>DepartmentId</th>
+            <th>DepartmentName</th>
+            <th>SectionSlakId</th>
+            <th>SectionSlakURL</th>
+            <th></th>
+        </tr>
+    </thend>
+    <tbody>
+        @foreach (var sectionss in sections)
+        {
+            <tr>
+                <td>@sectionss.SectionId</td>
+                <td>@sectionss.SectionName</td>
+                <td>@sectionss.DepartmentId</td>
+                <td>@sectionss.DepartmentName</td>
+                <td>@sectionss.SectionSlackId</td>
+                <td>@sectionss.SectionSlakUrl</td>
+
+                <td>
+                    <button @onclick="()=>Putsubmit(sectionss.SectionId)">編集</button>
+                    <button @onclick="()=>Deletesubmit(sectionss.SectionId)">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+    private List<Section> sections = new List<Section>();
+    SearchSection searchSection = new SearchSection();
+
+    [Inject]
+    private InterfaceAPI interfaceAPI { get; set; }
+    [Inject]
+    private NavigationManager navigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        sections = await interfaceAPI.GetSections(searchSection);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SearchSection()
+    {
+        sections.Clear();
+        sections = await interfaceAPI.GetSections(searchSection);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddSection()
+    {
+        navigationManager.NavigateTo("/client/section/add");
+
+    }
+    private void Putsubmit(int id)
+    {
+        navigationManager.NavigateTo($"/client/section/put/{id}");
+    }
+    private async void Deletesubmit(int id)
+    {
+        bool action =await Application.Current.MainPage.DisplayAlert("確認", "削除しますか？", "はい", "いいえ");
+        if (action)
+        {
+            bool result = await interfaceAPI.DeleteSection(id);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除しました", "OK");
+                sections = await interfaceAPI.GetSections(searchSection);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除できませんでした", "OK");
+            }
+        }
+
+    }
+}

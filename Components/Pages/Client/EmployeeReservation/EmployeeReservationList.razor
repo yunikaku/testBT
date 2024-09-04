@@ -1,0 +1,128 @@
+﻿@page "/employee/reservation/list"
+@using testBT.Models
+
+
+
+<h3>EmployeeReservationList</h3>
+
+<EditForm Model="@searchEmployeeReservation" OnValidSubmit="SearchSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group col-md-4">
+            <label for="inputLocation">ID</label>
+            <InputNumber id="inputId" class="form-control" @bind-Value="searchEmployeeReservation.EmployeeReservationsId" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputUserId">UserId</label>
+            <InputText id="inputUserId" class="form-control" @bind-Value="searchEmployeeReservation.UserId" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputUserName">UserName</label>
+            <InputText id="inputUserName" class="form-control" @bind-Value="searchEmployeeReservation.UserName" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputClientCompanyEmployeesId">ClientCompanyEmployeesId</label>
+            <InputNumber id="inputClientCompanyEmployeesId" class="form-control" @bind-Value="searchEmployeeReservation.ClientCompanyEmployeesId" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputClientCompanyEmployeesName">ClientCompanyEmployeesName</label>
+            <InputText id="inputClientCompanyEmployeesName" class="form-control" @bind-Value="searchEmployeeReservation.ClientCompanyEmployeesName" />
+        </div>
+        <div class="form-group col-md-4">
+             <label for="inputClientRequirement">Requirement</label>
+             <InputText id="inputRequirement" class="form-control" @bind-Value="searchEmployeeReservation.Requirement" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+
+
+    
+</EditForm>
+
+<br />
+<button @onclick="()=>AddEmployeeReservation()">予約追加</button>
+<br />
+
+<table  class="table">
+    <thead>
+        <tr>
+            <th>EmployeeReservationsId</th>
+            <th>UserId</th>
+            <th>UserName</th>
+            <th>ClientCompanyEmployeesId</th>
+            <th>ClientCompanyEmployeesName</th>
+            <th>Requirement</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (employeeReservations != null)
+        {
+            foreach (var employeeReservation in employeeReservations)
+            {
+                <tr>
+                    <td>@employeeReservation.EmployeeReservationsId</td>
+                    <td>@employeeReservation.UserId</td>
+                    <td>@employeeReservation.UserName</td>
+                    <td>@employeeReservation.ClientCompanyEmployeesId</td>
+                    <td>@employeeReservation.ClientCompanyEmployeesName</td>
+                    <td>@employeeReservation.Requirement</td>
+                    <td><button @onclick="()=>PutEmployeeReservation(employeeReservation.EmployeeReservationsId)">編集</button></td>
+                    <td><button @onclick="()=>DeleteEmployeeReservation(employeeReservation)">削除</button></td>
+                </tr>
+            }
+        }
+    
+    </tbody>
+    </table>
+
+@code {
+    List<EmployeeReservation> employeeReservations =new List<EmployeeReservation>();
+    SearchEmployeeReservation searchEmployeeReservation = new SearchEmployeeReservation();
+    [Inject]
+    private InterfaceAPI InterfaceAPI { get; set; }
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        employeeReservations = await InterfaceAPI.GetEmployeeReservations(searchEmployeeReservation);
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task SearchSubmit()
+    {
+        employeeReservations.Clear();
+        employeeReservations = await InterfaceAPI.GetEmployeeReservations(searchEmployeeReservation);
+        await InvokeAsync(StateHasChanged);
+
+    }
+    private async Task AddEmployeeReservation()
+    {
+        NavigationManager.NavigateTo("/client/employeereservation/add");
+    }
+    private async Task PutEmployeeReservation(int id)
+    {
+        NavigationManager.NavigateTo($"/client/employeereservation/put/{id}");
+    }
+    private async Task DeleteEmployeeReservation(EmployeeReservation employeeReservation)
+    {
+        bool action = await Application.Current.MainPage.DisplayAlert("Delete", "Are you sure?", "Yes", "No");
+        if (action)
+        {
+            bool result = await InterfaceAPI.DeleteEmployeeReservation(employeeReservation.EmployeeReservationsId);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("Success", "EmployeeReservation Deleted", "OK");
+                employeeReservations = await InterfaceAPI.GetEmployeeReservations(searchEmployeeReservation);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "EmployeeReservation Not Deleted", "OK");
+            }
+        }
+    }
+
+
+}

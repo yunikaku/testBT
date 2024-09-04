@@ -1,0 +1,46 @@
+﻿@page "/client/company/add"
+@using testBT.Models;
+
+<h3>ClientCompanyAdd</h3>
+
+<EditForm Model="@postClientCompany" OnValidSubmit="Addsubmit">
+    <div>
+        <label for="ClientCompanyName">ClientCompanyName</label>
+        <InputText id="ClientCompanyName" class="form-control" @bind-Value="postClientCompany.ClientCompanyName" />
+    </div>
+    <div>
+        <label for="ClientCompanyKana">ClientCompanyEmail</label>
+        <InputText id="ClientCompanyEmail" class="form-control" @bind-Value="postClientCompany.ClientCompanyEmail" />
+    </div>
+    <div>
+        <label for="ClientCompanyPhoneNumber">ClientCompanyPhoneNumber</label>
+        <InputText id="ClientCompanyPhoneNumber" class="form-control" @bind-Value="postClientCompany.ClientCompanyPhoneNumber" />
+    </div>
+    <div>
+        <label for="ClientCompanyAddress">ClientCompanyAddress</label>
+        <InputText id="ClientCompanyAddress" class="form-control" @bind-Value="postClientCompany.ClientCompanyAddress" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add</button>
+</EditForm>
+
+@code {
+
+    private PostClientCompany postClientCompany = new PostClientCompany();//追加するClientCompany
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+    private async void Addsubmit()
+    {
+        bool result = await InterfaceAPI.AddClientCompany(postClientCompany);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Failed to add", "OK");
+        }
+    }
+
+}

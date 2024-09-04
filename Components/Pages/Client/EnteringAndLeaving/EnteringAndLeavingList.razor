@@ -1,0 +1,91 @@
+﻿@page "/client/entering-and-leaving/list"
+@using testBT.Models;
+
+<h3>EnteringAndLeavingList</h3>
+
+<EditForm Model="@searchEnteringAndLeaving" OnValidSubmit="SearchEnteringAndLeaving">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group col-md-4">
+        <label for="inputLocation">ID</label>
+        <InputNumber id="inputId" class="form-control" @bind-Value="searchEnteringAndLeaving.EnteringAndLeavingId" />
+    </div>
+    <div class="form-group col-md-4">
+        <label for="inputName">DeviceId</label>
+        <InputNumber id="inputDeviceId" class="form-control" @bind-Value="searchEnteringAndLeaving.DeviceId" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search</button>
+
+</EditForm>
+
+<br />
+@* <button>入退室追加</button> *@
+<br />
+
+<table class="table">
+    <thend>
+        <tr>
+            <th>ID</th>
+            <th>DeviceId</th>
+            <th>DeviceName</th>
+            <th>UserId</th>
+            <th>UserName</th>
+            <th>ClientCompanyEmployeesId</th>
+            <th>ClientCompanyEmployeesName</th>
+            <th>StatusName</th>
+            <th>CompleteFlg</th>
+            <th>EnteringAndLeavingAdmissionTime</th>
+            <th>EnteringAndLeavingExitTime</th>
+
+            <th></th>
+        </tr>
+    </thend>
+    <tbody>
+        @foreach (var enteringAndLeaving in enteringAndLeavings)
+        {
+            <tr>
+                <td>@enteringAndLeaving.EnteringAndLeavingId</td>
+                <td>@enteringAndLeaving.DeviceId</td>
+                <td>@enteringAndLeaving.DeviceName</td>
+                <td>@enteringAndLeaving.UserId</td>
+                <td>@enteringAndLeaving.UserName</td>
+                <td>@enteringAndLeaving.ClientCompanyEmployeesId</td>
+                <td>@enteringAndLeaving.ClientCompanyEmployeesName</td>
+                <td>@enteringAndLeaving.StatusName</td>
+                <td>@enteringAndLeaving.CompleteFlg</td>
+                <td>@enteringAndLeaving.EnteringAndLeavingAdmissionTime</td>
+                <td>@enteringAndLeaving.EnteringAndLeavingExitTime</td>
+
+                <td>
+                    <button>編集</button>
+                    <button>削除</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+
+
+</table>
+
+@code {
+    List<EnteringAndLeaving> enteringAndLeavings = new List<EnteringAndLeaving>();
+    SearchEnteringAndLeaving searchEnteringAndLeaving = new SearchEnteringAndLeaving();
+    [Inject]
+    private InterfaceAPI InterfaceAPI { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        enteringAndLeavings = await InterfaceAPI.GetEnteringAndLeaving(searchEnteringAndLeaving);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SearchEnteringAndLeaving()
+    {
+        enteringAndLeavings.Clear();
+        enteringAndLeavings = await InterfaceAPI.GetEnteringAndLeaving(searchEnteringAndLeaving);
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

@@ -1,0 +1,54 @@
+﻿@page "/client/department/put/{ID:int}"
+@using testBT.Models
+<h3>DepartmemtPut</h3>
+
+<EditForm Model="@department" OnValidSubmit="Putsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>>
+        <label for="Id">ID</label>
+        <label>@department.DepartmentId</label>
+    </div>
+
+    
+    <div class="form-group col-md-4">
+        <label for="inputName">Name</label>
+        <InputText id="inputName" class="form-control" @bind-Value="department.DepartmentName" />
+    </div>
+    <div class="form-group col-md-4">
+        <label for="inputSlackId">SlackID</label>
+        <InputText id="inputSlackId" class="form-control" @bind-Value="department.DepartmentSlackId" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+</EditForm>
+
+@code {
+    private Department department = new Department();
+    [Parameter]
+    public int ID { get; set; }
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        department = await InterfaceAPI.PutgetDepartment(ID);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Putsubmit()
+    {
+        bool result = await InterfaceAPI.PutDepartment(department);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Department Updated", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Department Not Updated", "OK");
+        }
+    }
+    
+    
+
+}

@@ -1,0 +1,87 @@
+﻿@page "/client/company/employee/put/{Id:int}"
+@using testBT.Models;
+<h3>ClientCompanyEmployeePut</h3>
+
+
+<EditForm Model="@clientCompanyEmployee" OnValidSubmit="Putsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Id">ClientCompanyEmployeeId</label>
+        <InputNumber id="Id" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesId" />
+    </div>
+    <div class="form-group">
+        <label for="Name">ClientCompanyEmployeeName</label>
+        <InputText id="Name" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesName" />
+    </div>
+    <div class="form-group">
+        <label for="NameKana">ClientCompanyEmployeeNameKana</label>
+        <InputText id="NameKana" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesNameKana" />
+    </div>
+    <div class="form-group">
+        <label for="PhoneNumber">ClientCompanyEmployeePhoneNumber</label>
+        <InputText id="PhoneNumber" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesPhoneNumber" />
+    </div>
+    
+    <div class="form-group">
+        <label for="Email">ClientCompanyEmployeeEmail</label>
+        <InputText id="Email" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesEmail" />
+    </div>
+    <div class="form-group">
+        <label for="ClientCompanyId">ClientCompany</label>
+        <InputSelect id="ClientCompanyId" class="form-select" @bind-Value="clientCompanyEmployee.ClientCompanyId">
+            @foreach (var clientCompany in clientCompaniesList)
+            {
+                <option value="@clientCompany.ClientCompanyId" @key="clientCompany.ClientCompanyId">@clientCompany.ClientCompanyName</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Section">ClientCompanyEmployeesSection</label>
+        <InputText id="Section" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesSection" />
+    </div>
+    <div class="form-group">
+        <label for="Position">ClientCompanyEmployeesPosition</label>
+        <InputText id="Position" class="form-control" @bind-Value="clientCompanyEmployee.ClientCompanyEmployeesPosition" />
+    </div>      
+
+    <button type="submit" class="btn btn-primary">更新</button>
+
+
+</EditForm>
+
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+    
+
+    ClientCompanyEmployee clientCompanyEmployee = new ClientCompanyEmployee();
+    private List<ClientCompany> clientCompaniesList = new List<ClientCompany>();//ClientCompanyのリスト
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientCompaniesList = await InterfaceAPI.GetClientCompanies(new SearchClientCompany());
+        clientCompanyEmployee = await InterfaceAPI.PutgetClientCompanyEmployee(Id);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Putsubmit()
+    {
+        bool result = await InterfaceAPI.PutClientCompanyEmployee(clientCompanyEmployee);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("更新", "更新しました", "OK");
+            
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("更新", "更新できませんでした", "OK");
+        }
+    }
+    
+}

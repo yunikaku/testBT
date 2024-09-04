@@ -1,0 +1,57 @@
+﻿@page "/client/employeereservation/add"
+@using System.Text
+@using testBT.Models
+
+
+<h3>EmployeeReservationAdd</h3>
+
+
+<EditForm Model="@postEmployeeReservation" OnValidSubmit="Addsybmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="ReservationDate">User</label>
+        <InputText id="ReservationDate" class="form-control" @bind-Value="@postEmployeeReservation.UserId" />
+    </div>
+
+    <div class="form-group">
+        <label for="EmployeeId">ClientCompanyEmployees</label>
+        <InputNumber id="EmployeeId" class="form-control" @bind-Value="@postEmployeeReservation.ClientCompanyEmployeesId" />
+    </div>
+    <div class="form-group">
+        <label for="ReservationDate">ReservationDate</label>
+        <InputDate id="ReservationDate" class="form-control" @bind-Value="@postEmployeeReservation.ReservationTime" />
+    </div>
+    <div class="form-group">
+        <label for="ReservationDate">Requirement</label>
+        <InputText id="Requirement" class="form-control" @bind-Value="@postEmployeeReservation.Requirement" />
+    </div>
+    
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+</EditForm>
+
+@code {
+    PostEmployeeReservation postEmployeeReservation = new PostEmployeeReservation();
+
+    [Inject]
+    InterfaceAPI interfaceAPI { get; set; }
+
+    private async Task Addsybmit()
+    {
+        var result = await interfaceAPI.AddEmployeeReservation(postEmployeeReservation);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Employee Reservation Added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Employee Reservation Not Added", "OK");
+        }
+
+    }
+
+}

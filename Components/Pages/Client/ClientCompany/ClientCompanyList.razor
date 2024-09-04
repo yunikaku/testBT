@@ -1,0 +1,123 @@
+﻿@page "/client/company/list"
+
+@using testBT.Models;
+
+
+<h3>ClientCompanyList</h3>
+
+<EditForm Model="@searchClientCompany" OnValidSubmit="Searchsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Id">ClientCompanyId</label>
+        <InputNumber id="Id" class="form-control" @bind-Value="searchClientCompany.Id" />
+    </div>
+    <div class="form-group">
+        <label for="Name">ClientCompanyName</label>
+        <InputText id="Name" class="form-control" @bind-Value="searchClientCompany.Name" />
+    </div>
+
+    
+
+    <button type="submit" class="btn btn-primary">Search</button>
+
+</EditForm>
+
+<br />
+<button @onclick="()=>Addsubmit()">会社追加</button>
+<br />
+<table  class="table">
+    <thead>
+        <tr>
+            <th>ClientCompanyId</th>
+            <th>ClientCompanyName</th>
+            <th>ClientCompanyPhoneNumber</th>
+            <th>ClientCompanyAddress</th>
+            <th>ClientCompanyEmail</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (clientCompanies != null)
+        {
+            foreach (var clientCompany in clientCompanies)
+            {
+                <tr>
+                    <td>@clientCompany.ClientCompanyId</td>
+                    <td>@clientCompany.ClientCompanyName</td>
+                    <td>@clientCompany.ClientCompanyPhoneNumber</td>
+                    <td>@clientCompany.ClientCompanyAddress</td>
+                    <td>@clientCompany.ClientCompanyEmail</td>
+                    <td><button @onclick="()=>Putsubmit(clientCompany.ClientCompanyId)">編集</button></td>
+                    <td><button @onclick="()=>Deletesubmit(clientCompany)">削除</button></td>
+                </tr>
+            }
+        }
+    
+    </tbody>
+</table>
+
+
+@code {
+    SearchClientCompany searchClientCompany = new SearchClientCompany();
+    List<ClientCompany>  clientCompanies =new List<ClientCompany>();
+    [Inject]
+    private InterfaceAPI interfaceAPI { get; set; }
+    [Inject]
+    NavigationManager NavigationManager { get; set; }
+
+    bool forceLoad = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientCompanies = await interfaceAPI.GetClientCompanies(searchClientCompany);
+    }
+
+    private async Task Searchsubmit()
+    {
+        clientCompanies.Clear();
+        clientCompanies = await interfaceAPI.GetClientCompanies(searchClientCompany);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private void Putsubmit(int id)
+    {
+        if(NavigationManager!=null)
+        {
+            NavigationManager.NavigateTo($"/client/company/edit/{id}");
+        }
+    }
+
+    private async void Deletesubmit(ClientCompany clientCompany)
+    {
+        var action= await Application.Current.MainPage.DisplayAlert("削除", clientCompany+"削除しますか？", "はい", "いいえ");
+        if(action)
+        {
+            bool result = await interfaceAPI.DeleteClientCompany(clientCompany.ClientCompanyId);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除しました", "OK");
+                clientCompanies = await interfaceAPI.GetClientCompanies(searchClientCompany);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除できませんでした", "OK");
+            }
+        }
+
+    }
+
+    private void Addsubmit()
+    {
+        if (NavigationManager != null)
+        {
+            NavigationManager.NavigateTo($"/client/company/add");
+        }
+    }
+
+
+
+}

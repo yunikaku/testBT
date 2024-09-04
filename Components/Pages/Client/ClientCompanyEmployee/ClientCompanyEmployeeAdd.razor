@@ -1,0 +1,81 @@
+﻿@page "/client/company/employee/add"
+@using testBT.Models;
+
+
+<h3>ClientCompanyEmployeeAdd</h3>
+
+<EditForm Model="@postClientCompanyEmployee" OnValidSubmit="Addsubmit">
+    <div>
+        <label for="Name">Name</label>
+        <InputText id="Name" class="form-control" @bind-Value="postClientCompanyEmployee.ClientCompanyEmployeeName" />
+    </div>
+    <div>
+        <label for="NameKana">NameKana</label>
+        <InputText id="NameKana" class="form-control" @bind-Value="postClientCompanyEmployee.ClientCompanyEmployeeNameKana" />
+    </div>
+    <div>
+        <label for="PhoneNumber">PhoneNumber</label>
+        <InputText id="PhoneNumber" class="form-control" @bind-Value="postClientCompanyEmployee.ClientCompanyEmployeePhoneNumber" />
+    </div>
+    <div>
+        <label for="Email">Email</label>
+        <InputText id="Email" class="form-control" @bind-Value="postClientCompanyEmployee.ClientCompanyEmployeeEmail" />
+    </div>
+    <div>
+        <label for="Section">Section</label>
+        <InputText id="Section" class="form-control" @bind-Value="postClientCompanyEmployee.ClientCompanyEmployeeSection" />
+    </div>
+    <div>
+        <label for="Position">Position</label>
+        <InputText id="Position" class="form-control" @bind-Value="postClientCompanyEmployee.ClientCompanyEmployeePosition" />
+    </div>
+    <div>
+        <label for="ClientCompanyId">ClientCompanyId</label>
+        <InputSelect id="ClientCompanyId" class="form-select" @bind-Value="postClientCompanyEmployee.ClientCompanyId" >
+            @foreach (var clientCompany in clientCompaniesList)
+            {
+                <option value="@clientCompany.ClientCompanyId">@clientCompany.ClientCompanyName</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add</button>
+
+</EditForm>
+
+@code {
+    private List<ClientCompany> clientCompaniesList = new List<ClientCompany>();//ClientCompanyのリスト
+    private ClientCompany  selectclientCompany= new ClientCompany();//選択されたClientCompany
+    private SearchClientCompany searchClientCompany = new SearchClientCompany();//検索条件
+    private PostClientCompanyEmployee postClientCompanyEmployee = new PostClientCompanyEmployee();//追加するClientCompanyEmployee
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientCompaniesList = await InterfaceAPI.GetClientCompanies(searchClientCompany);
+    }
+
+    private async Task Addsubmit()
+    {
+        bool result = await InterfaceAPI.AddClientCompanyEmployee(postClientCompanyEmployee);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("登録完了", "登録完了", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("登録失敗", "登録失敗", "OK");
+        }
+    }
+
+    
+
+
+
+    
+
+
+}

@@ -1,0 +1,114 @@
+﻿@page "/client/conferenceroom/list"
+@using testBT.Models
+@using Newtonsoft.Json;
+
+<h3>ConferenceRoomList</h3>
+
+<EditForm Model="@searchConferenceRoom" OnValidSubmit="SearchSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+        <div class="form-group col-md-4">
+            <label for="inputLocation">ID</label>
+            <InputNumber id="inputId" class="form-control" @bind-Value="searchConferenceRoom.ConferenceRoomId" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputName">Name</label>
+            <InputText id="inputName" class="form-control" @bind-Value="searchConferenceRoom.ConferenceRoomName" />
+        </div>
+        <div class="form-group col-md-4">
+        <label for="inputLocation">Capacity</label>
+        <InputNumber id="inputCapacity" class="form-control" @bind-Value="searchConferenceRoom.ConferenceRoomCapacity" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+        
+
+</EditForm>
+
+<br />
+<button @onclick="()=>AddConferenceRoom()">会議室追加</button>
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Capacity</th>
+            <th>UPTime</th>
+            <th>UP User</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var conferenceRoom in conferenceRooms)
+        {
+            <tr>
+                <td>@conferenceRoom.ConferenceRoomId</td>
+                <td>@conferenceRoom.ConferenceRoomName</td>
+                <td>@conferenceRoom.ConferenceRoomCapacity</td>
+                <td>@conferenceRoom.UpdateTime</td>
+                <td>@conferenceRoom.UpdateUser</td>
+                <td>
+                    <button @onclick="()=>PutConferenceRoom(conferenceRoom.ConferenceRoomId)">編集</button>
+                    <button @onclick="()=>DeleteConferenceRoom(conferenceRoom)">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+
+
+@code {
+    List<ConferenceRoom> conferenceRooms = new List<ConferenceRoom>();
+    SearchConferenceRoom searchConferenceRoom = new SearchConferenceRoom();
+    [Inject]
+    private InterfaceAPI interfaceAPI { get; set; }
+    [Inject]
+    private NavigationManager navigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        conferenceRooms = await interfaceAPI.GetConferenceRooms(searchConferenceRoom);
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task SearchSubmit()
+    {
+        conferenceRooms.Clear();
+        conferenceRooms = await interfaceAPI.GetConferenceRooms(searchConferenceRoom);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async Task AddConferenceRoom()
+    {
+        navigationManager.NavigateTo("/client/conferenceroom/add");
+    }
+
+    private async Task PutConferenceRoom(int Id)
+    {
+        navigationManager.NavigateTo($"/client/conferenceroom/put/{Id}");
+    }
+    private async Task DeleteConferenceRoom(ConferenceRoom conferenceRoom)
+    {
+        var action = await Application.Current.MainPage.DisplayAlert("削除", conferenceRoom + "削除しますか？", "はい", "いいえ");
+        if (action)
+        {
+            var result = await interfaceAPI.DeleteConferenceRoom(conferenceRoom.ConferenceRoomId);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除しました", "OK");
+                conferenceRooms = await interfaceAPI.GetConferenceRooms(searchConferenceRoom);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除できませんでした", "OK");
+            }
+        }
+        
+    }
+
+}

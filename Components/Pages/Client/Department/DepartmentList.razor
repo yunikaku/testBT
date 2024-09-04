@@ -1,0 +1,107 @@
+﻿@page "/client/department/list"
+
+@using testBT.Models
+
+
+
+<h3>DepartmentList</h3>
+
+<EditForm Model="@searchDepartment" OnValidSubmit="SearchDepartment">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group col-md-4">
+            <label for="inputLocation">ID</label>
+            <InputNumber id="inputId" class="form-control" @bind-Value="searchDepartment.DepartmentId" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="inputName">Name</label>
+            <InputText id="inputName" class="form-control" @bind-Value="searchDepartment.DepartmentName" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+
+        
+</EditForm>
+
+<br />
+<button @onclick="()=>Addsubmit()">部署追加</button>
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>SlackID</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var department in departments)
+        {
+            <tr>
+                <td>@department.DepartmentId</td>
+                <td>@department.DepartmentName</td>
+                <td>@department.DepartmentSlackId</td>
+                <td>
+                    <button @onclick="()=>Putsubmit(department.DepartmentId)">編集</button>
+                    <button @onclick="()=>Deletesubmit(department)">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+@code {
+
+    List<Department> departments = new List<Department>();
+    SearchDepartment searchDepartment = new SearchDepartment();
+    [Inject]
+    private InterfaceAPI InterfaceAPI { get; set; }
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        departments = await InterfaceAPI.GetDepartments(searchDepartment);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SearchDepartment()
+    {
+        departments.Clear();
+        departments = await InterfaceAPI.GetDepartments(searchDepartment);
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task Putsubmit(int ID)
+    {
+        NavigationManager.NavigateTo($"/client/department/put/{ID}");
+    }
+    private async Task Deletesubmit(Department department)
+    {
+        bool action = await Application.Current.MainPage.DisplayAlert("Delete", "Are you sure?", "Yes", "No");
+        if(action)
+        {
+            bool result = await InterfaceAPI.DeleteDepartment(department.DepartmentId);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("Success", "Department Deleted", "OK");
+                departments = await InterfaceAPI.GetDepartments(searchDepartment);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Department Not Deleted", "OK");
+            }
+        }
+        
+    }
+    private async Task Addsubmit()
+    {
+        NavigationManager.NavigateTo($"/client/department/add");
+    }
+
+}

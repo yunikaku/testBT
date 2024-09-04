@@ -1,0 +1,60 @@
+﻿@page "/client/device/put/{Id:int}"
+@using testBT.Models;
+
+<h3>DevicePut</h3>
+
+<EditForm Model="@putDevice" OnValidSubmit="@Putsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="Id">ID</label>
+        <label>@putDevice.DeviceId</label>
+    </div>
+
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <InputText id="Name" class="form-control" @bind-Value="putDevice.DeviceName" />
+    </div>
+    <div class="form-group">
+        <label for="Type">Lpcation</label>
+        <InputText id="Type" class="form-control" @bind-Value="putDevice.DeviceLocation" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+</EditForm>
+
+@code {
+    private Device putDevice = new Device();
+
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+    [Inject]
+    NavigationManager NavigationManager { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        putDevice = await InterfaceAPI.PutgetDevice(Id);
+    }
+
+    private async void Putsubmit()
+    {
+        // UserInfo user= await InterfaceAPI.GetUserDate();
+        // putDevice.DeviceUpdateUserID = user.Id;
+        bool result = await InterfaceAPI.PutDevice(putDevice);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Device Updated", "OK"); 
+        }
+        else 
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Device Not Updated", "OK");
+        }
+    }
+
+}

@@ -1,0 +1,114 @@
+﻿@page "/testbt"
+
+@using Plugin.BLE.Abstractions.Contracts;
+@using Plugin.BLE.Abstractions;
+@using Plugin.BLE.Abstractions.EventArgs;
+@using Plugin.BLE;
+
+@inject IBluetoothLE ble;
+@inject IAdapter adapter;
+@inject interfacePreferences preferences;
+
+
+<h1>TestBT</h1>
+
+@foreach(var device in devices)
+{
+    <div>
+        <h3>@device.Name</h3>
+        <button @onclick="() => ConnectToDevice(device)">Connect</button>
+    </div>
+}
+
+
+   @foreach(var characteristic in characteristiclist)
+    {
+        <div>
+            <h3>@characteristic[0]</h3>
+            <h3>@characteristic[1]</h3>
+            <h3>@characteristic[2]</h3>
+        </div>
+    }
+
+    <h3>更新データ</h3>
+    <h3>@characteristicValue</h3>
+
+
+
+@code 
+{
+    private readonly List<IDevice> devices = new List<IDevice>();
+    private string characteristicValue;
+
+    List<List<string>> characteristiclist= new List<List<string>>();
+
+
+    //ページが読み込まれたときに実行されるメソッド
+    //デバイスの検出を開始する
+    protected override async Task OnInitializedAsync()
+    {
+        devices.Clear();
+        adapter.DeviceDiscovered += (s, a) =>
+        {
+            devices.Add(a.Device);
+
+        };
+
+        await adapter.StartScanningForDevicesAsync();
+    }
+
+    private async Task ConnectToDevice(IDevice device)
+    {
+        try
+        {
+            await adapter.ConnectToDeviceAsync(device);
+            var services = await device.GetServicesAsync();
+
+            foreach (var service in services)
+            {
+                if (service.Id == Guid.Parse(preferences.LoadData("ServiceUUID")))
+                {
+                    var List=new List<string>();
+                    var characteristics = await service.GetCharacteristicsAsync();
+                    ICharacteristic characteristicup = await service.GetCharacteristicAsync(Guid.Parse(preferences.LoadData("CharacteristicUUID")));
+
+                    foreach (var characteristic in characteristics)
+                    {
+
+                        List.Add(characteristic.Id.ToString());
+                        List.Add(characteristic.Name.ToString());
+                        if(characteristic.CanRead)
+                        {
+                            var (data,valu)=await characteristic.ReadAsync();
+                            List.Add(BitConverter.ToString(data));
+                        }
+                        else
+                        {
+                            List.Add("Can't read");
+                        }
+
+
+                    }
+                    characteristiclist.Add(List);
+                    if(characteristicup.CanUpdate)
+                    {
+                        characteristicup.ValueUpdated += OnCharacteristicValueUpdated;
+                        await characteristicup.StartUpdatesAsync();
+                    }
+
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            characteristicValue= ex.Message;
+        }
+    }
+    private void OnCharacteristicValueUpdated(object sender, Plugin.BLE.Abstractions.EventArgs.CharacteristicUpdatedEventArgs e)
+    {
+        var data = e.Characteristic.Value;
+        characteristicValue = BitConverter.ToString(data);
+    }
+
+}

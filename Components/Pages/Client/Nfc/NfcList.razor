@@ -1,0 +1,155 @@
+﻿@page "/nfclist"
+
+@using testBT.Models;
+
+
+
+<h3>NfcList</h3>
+<EditForm Model="@SearchNFC" OnValidSubmit="Searchsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="NfcId">NfcUid</label>
+        <InputText id="NfcUid" class="form-control" @bind-Value="SearchNFC.NfcUid" />
+    </div>
+    <div class="form-group">
+        <label for="NfcName">UserName</label>
+        <InputText id="UserName" class="form-control" @bind-Value="SearchNFC.UserName" />
+    </div>
+    <div class="form-group">
+        <label for="NfcType">ClientCompanyEmployeesName</label>
+            <InputText id="ClientCompanyEmployeesName" class="form-control" @bind-Value="SearchNFC.ClientCompanyEmployeesName" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search</button>
+</EditForm>
+
+<br />
+
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>NfcId</th>
+            <th>NfcUid</th>
+            <th>UserId</th>
+            <th>UserName</th>
+            <th>ClientCompanyEmployeesId</th>
+            <th>ClientCompanyEmployeesName</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (nfcs != null)
+        {
+            foreach (var nfc in nfcs)
+            {
+                <tr>
+                    <td>@nfc.NfcId</td>
+                    <td>@nfc.NfcUid</td>
+                    <td>@nfc.UserId</td>
+                    <td>@nfc.UserName</td>
+                    <td>@nfc.ClientCompanyEmployeesId</td>
+                    <td>@nfc.ClientCompanyEmployeesName</td>
+                    <td><button>セット</button></td>
+                    <td><button>リセット</button></td>
+                    <td><button>削除</button></td>
+                </tr>
+            }
+        }
+        
+    </tbody>
+</table>
+
+
+
+@code {
+    List<NFC> nfcs = new List<NFC>();
+    PostNFC nfc = new PostNFC();
+    SearchNFC SearchNFC = new SearchNFC();
+    [Inject]
+    private InterfaceAPI api { get; set; }
+    [Inject]
+    private NavigationManager navigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        nfcs = await api.GetNFC(SearchNFC);
+    }
+    private async Task Searchsubmit()
+    {
+        nfcs.Clear();
+        nfcs = await api.GetNFC(SearchNFC);
+        await InvokeAsync(StateHasChanged);
+
+    }
+    //追加
+    private async void Addsubmit()
+    {
+        //ポップアップ表示（NFCをかざしてください）
+        //NFCをかざしたら、NFCの情報を取得
+        //取得した情報をnfcに登録
+
+        bool addFlg = await api.AddNFC(nfc);
+        if (addFlg)
+        {
+            await Application.Current.MainPage.DisplayAlert("登録完了", "NFCを登録しました", "OK");
+            nfcs = await api.GetNFC(SearchNFC);
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("登録失敗", "NFCの登録に失敗しました", "OK");
+        }
+    }
+    //セット
+    private void Setsubmit(int id)
+    {
+        navigationManager.NavigateTo($"/nfc/set/{id}");
+    }
+    //リセット
+    private async void Resetsubmit(string uid)
+    {
+        var action = await Application.Current.MainPage.DisplayAlert("リセット", "NFCをリセットしますか？", "OK", "キャンセル");
+        if (action)
+        {
+            bool resetFlg = await api.ResetNFC(uid);
+            if (resetFlg)
+            {
+                await Application.Current.MainPage.DisplayAlert("リセット完了", "NFCをリセットしました", "OK");
+                nfcs = await api.GetNFC(SearchNFC);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("リセット失敗", "NFCのリセットに失敗しました", "OK");
+            }
+        }
+
+    }
+    //削除
+    private async void Deletesubmit(string uid)
+    {
+        var action = await Application.Current.MainPage.DisplayAlert("削除", "NFCを削除しますか？", "OK", "キャンセル");
+        if (action)
+        {
+            bool deleteFlg = await api.DeleteNFC(uid);
+            if (deleteFlg)
+            {
+                await Application.Current.MainPage.DisplayAlert("削除完了", "NFCを削除しました", "OK");
+                nfcs = await api.GetNFC(SearchNFC);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("削除失敗", "NFCの削除に失敗しました", "OK");
+            }
+        }
+        else
+        {
+            Application.Current.MainPage.DisplayAlert("削除キャンセル", "NFCの削除をキャンセルしました", "OK");
+        }
+
+    }
+
+}

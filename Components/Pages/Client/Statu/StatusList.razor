@@ -1,0 +1,100 @@
+﻿@page "/client/statu/list"
+@using testBT.Models;
+
+<h3>StatusList</h3>
+
+<EditForm Model="@searchStatus" OnValidSubmit="SearchStatus">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group col-md-4">
+        <label for="inputStatusId">StatusId</label>
+        <InputNumber id="inputStatusId" class="form-control" @bind-Value="searchStatus.StatusId" />
+    </div>
+    
+    <div class="form-group col-md-4">
+        <label for="inputStatusName">StatusName</label>
+        <InputText id="inputStatusName" class="form-control" @bind-Value="searchStatus.StatusName" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search</button>
+
+</EditForm>
+
+<br />
+<button @onclick="()=>AddStatus()">ステータス追加</button>
+<br />
+
+<table class="table">
+    <thend>
+        <tr>
+            <th>StatusId</th>
+            <th>StatusName</th>
+            <th></th>
+        </tr>
+    </thend>
+    <tbody>
+        @foreach (var status in statuses)
+        {
+            <tr>
+                <td>@status.StatusId</td>
+                <td>@status.StatusName</td>
+                <td>
+                    <button @onclick="()=>PutStatus(status.StatusId)">編集</button>
+                    <button @onclick="()=>DeleteStatus(status)">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    SearchStatus searchStatus = new SearchStatus();
+    private List<Status> statuses = new List<Status>();
+    [Inject]
+    private InterfaceAPI InterfaceAPI { get; set; }
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        statuses = await InterfaceAPI.GetStatus(searchStatus);
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async Task SearchStatus()
+    {
+        statuses.Clear();
+        statuses = await InterfaceAPI.GetStatus(searchStatus);
+        await InvokeAsync(StateHasChanged);
+    }
+    private void AddStatus()
+    {
+        NavigationManager.NavigateTo("/client/statu/add");
+    }
+    private void PutStatus(int ID)
+    {
+        NavigationManager.NavigateTo($"/client/statu/put/{ID}");
+    }
+    private async void DeleteStatus(Status status)
+    {
+        bool action = await Application.Current.MainPage.DisplayAlert("削除", status + "を削除しますか？", "はい", "いいえ");
+        if (action)
+        {
+            bool result = await InterfaceAPI.DeleteStatus(status.StatusId);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除しました", "OK");
+                statuses = await InterfaceAPI.GetStatus(searchStatus);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除失敗", "OK");
+            }
+        }
+    }
+
+}

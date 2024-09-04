@@ -1,0 +1,109 @@
+﻿@page "/client/device/list"
+@using testBT.Models
+
+
+<h3>DeviceList</h3>
+
+<EditForm Model="@searchDevice" OnValidSubmit="SearchDevice">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group col-md-4">
+        <label for="inputLocation">ID</label>
+        <InputNumber id="inputId" class="form-control" @bind-Value="searchDevice.DeviceId" />
+    </div>
+    <div class="form-group col-md-4">
+        <label for="inputName">Name</label>
+        <InputText id="inputName" class="form-control" @bind-Value="searchDevice.DeviceName" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search</button>
+
+</EditForm>
+
+
+<br />
+<button @onclick="()=>Addsubmit()">デバイス追加</button>
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>DeviceLocation</th>
+            <th>CreationTime</th>
+            <th>UpdateTime</th>
+            <th>DeviceUpdateUserID</th>
+            <th>DeviceUpdateUserName</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var device in devices)
+        {
+            <tr>
+                <td>@device.DeviceId</td>
+                <td>@device.DeviceName</td>
+                <td>@device.DeviceLocation</td>
+                <td>@device.CreationTime</td>
+                <td>@device.UpdateTime</td>
+                <td>@device.DeviceUpdateUserID</td>
+                <td>@device.DeviceUpdateUserName</td>
+                <td>
+                    <button @onclick="()=>Putsubmit(device.DeviceId)">編集</button>
+                    <button @onclick="()=>Deletesubmit(device)">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+
+@code {
+
+    List<Device> devices = new List<Device>();
+    SearchDevice searchDevice = new SearchDevice();
+    [Inject]
+    private InterfaceAPI InterfaceAPI { get; set; }
+    [Inject]
+    NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        devices = await InterfaceAPI.GetDevices(searchDevice);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SearchDevice()
+    {
+        devices.Clear();
+        devices = await InterfaceAPI.GetDevices(searchDevice);
+        await InvokeAsync(StateHasChanged);
+    }
+    private void Addsubmit()
+    {
+        NavigationManager.NavigateTo("/client/device/add");
+    }
+    private void Putsubmit(int id)
+    {
+        NavigationManager.NavigateTo($"/client/device/put/{id}");
+    }
+    private async void Deletesubmit(Device device)
+    {
+        var action = await Application.Current.MainPage.DisplayAlert("削除", "削除しますか？", "はい", "いいえ");
+        if (action)
+        {
+            var result = await InterfaceAPI.DeleteDevice(device.DeviceId);
+            if (result)
+            {
+                Application.Current.MainPage.DisplayAlert("削除", "削除しました", "OK");
+            }
+            else
+            {
+                Application.Current.MainPage.DisplayAlert("削除", "削除失敗", "OK");
+            }
+        }
+    }
+
+}

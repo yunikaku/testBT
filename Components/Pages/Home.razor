@@ -1,0 +1,114 @@
+﻿@page "/"
+
+
+<h1>Hello, world!</h1>
+
+
+<div>
+    
+    <button @onclick="()=>TestBTPage()">BT</button>
+    <button @onclick="()=>reservationPage()">reservation</button>
+    <button @onclick="()=>delivery()">配達員</button>
+    ポップアップを上に呼び出し中と表示
+    事務のSlakグループにDM
+    <button @onclick="()=>noReservation()">予約なし</button>
+    ポップアップを上に呼び出し中と表示
+    事務のSlakグループにDM
+
+    <button @onclick="()=>Login()">Counter</button>
+    <br />
+    <button @onclick="()=>NFCList()">NFCList</button>
+    <br />
+    <button @onclick="()=>ClientCompanyList()">ClientCompanyList</button>
+    <br />
+    <button @onclick="()=>ClientCompanyEmployeeList()">ClientCompanyEmployeeList</button>
+    <br />
+    <button @onclick="()=>ConferenceRoomList()">ConferenceRoomList</button>
+    <br />
+    <button @onclick="()=>DepartmentList()">DepartmentList</button>
+    <br />
+    <button @onclick="()=>EmployeeReservationList()">EmployeeReservationList</button>
+    <br />
+    <button @onclick="()=>EnteringAndLeavingList()">EnteringAndLeavingList</button>
+    <br />
+    <button @onclick="()=>SectionList()">SectionList</button>
+    <br />
+    <button @onclick="()=>StatuList()">StatuList</button>
+    
+    
+    
+
+
+</div>
+@code 
+{
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    private void TestBTPage()
+    {
+        NavigationManager.NavigateTo("/testbt");
+
+    }
+    private void reservationPage()
+    {
+        NavigationManager.NavigateTo("/reception/reservation");
+    }
+    private async void delivery()
+    {
+        //ここにSlakにDMを送る
+        await Application.Current.MainPage.DisplayAlert("配達員", "呼び出し中", "OK");
+    }
+    private async void noReservation()
+    {
+        //ここにSlakにDMを送る
+        await Application.Current.MainPage.DisplayAlert("予約なし", "呼び出し中", "OK");
+    }
+    private void Login()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+    private void NFCList()
+    {
+        NavigationManager.NavigateTo("/nfclist");
+    }
+    private void ClientCompanyList()
+    {
+        NavigationManager.NavigateTo("/client/company/list");
+    }
+    private void ClientCompanyEmployeeList()
+    {
+        NavigationManager.NavigateTo("/client/company/employee/list");
+    }
+    private void ConferenceRoomList()
+    {
+        NavigationManager.NavigateTo("/client/conferenceroom/list");
+    }
+    private void DepartmentList()
+    {
+        NavigationManager.NavigateTo("/client/department/list");
+    }
+    private void DeviceList()
+    {
+        NavigationManager.NavigateTo("/client/device/list");
+    }
+    private void EmployeeReservationList()
+    {
+        NavigationManager.NavigateTo("/employee/reservation/list");
+    }
+    private void EnteringAndLeavingList()
+    {
+        NavigationManager.NavigateTo("/client/entering-and-leaving/list");
+    }
+    private void SectionList()
+    {
+        NavigationManager.NavigateTo("/client/section/list");
+    }
+    private void StatuList()
+    {
+        NavigationManager.NavigateTo("/client/statu/list");
+    }
+
+
+    
+}

@@ -1,0 +1,45 @@
+﻿@page "/client/department/add"
+@using testBT.Models
+
+<h3>DepartmentAdd</h3>
+
+<EditForm Model="@postDepartment" OnValidSubmit="AddDepartment">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <InputText id="Name" class="form-control" @bind-Value="postDepartment.DepartmentName" />
+    </div>
+    <div class="form-group">
+        <label for="Description">DepartmentSlakId</label>
+        <InputText id="DepartmentSlakId" class="form-control" @bind-Value="postDepartment.DepartmentSlakId" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add</button>
+</EditForm>
+
+@code {
+    private PostDepartment postDepartment = new PostDepartment();
+    [Inject]
+    InterfaceAPI interfaceAPI { get; set; }
+
+
+
+    private async Task AddDepartment()
+    {
+        var result = await interfaceAPI.AddDepartment(postDepartment);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Failed to add", "OK");
+        }
+    }
+
+
+
+}

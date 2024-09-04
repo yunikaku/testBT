@@ -1,0 +1,38 @@
+﻿@page "/client/statu/add"
+@using testBT.Models
+
+<h3>StatuAdd</h3>
+
+<EditForm Model="@postStatu" OnValidSubmit="Addsubmit">
+
+    <div>
+        <label for="StatuName">StatuName</label>
+        <InputText id="StatuName" class="form-control" @bind-Value="postStatu.StatusName" />
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+</EditForm>
+
+@code {
+
+    private PostStatus postStatu = new PostStatus();
+    
+    
+    [Inject]
+    InterfaceAPI interfaceAPI { get; set; }
+
+    
+
+    private async Task Addsubmit()
+    {
+        var result = await interfaceAPI.AddStatus(postStatu);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "Statu Added", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "Statu Not Added", "OK");
+        }
+    }
+
+}

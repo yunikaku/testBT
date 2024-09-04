@@ -1,0 +1,64 @@
+﻿@page "/client/employeereservation/put/{ID:int}"
+@using testBT.Models;
+<h3>EmployeeReservationPut</h3>
+
+<EditForm Model="@employeeReservation" OnValidSubmit="Putsubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="Id">ID</label>
+        <label>@employeeReservation.EmployeeReservationsId</label>
+    </div>
+    <div>
+        <label for="EmployeeId">EmployeeId</label>
+        <InputNumber id="EmployeeId" @bind-Value="employeeReservation.ClientCompanyEmployeesId" />
+    </div>
+    <div>
+        <label for="UserId">UserId</label>
+        <InputText id="UserId" @bind-Value="employeeReservation.UserId" />
+    </div>
+    <div>
+        <label for="time">Time</label>
+        <InputDate id="time" @bind-Value="employeeReservation.ReservationsTime" />
+    </div>
+    <div>
+        <label for="CompleteFlag">CompleteFlag</label>
+        <InputText id="CompleteFlag" @bind-Value="employeeReservation.CompleteFlag" />
+    </div>
+    <div>
+        <label for="Requirement">Requirement</label>
+        <InputText id="Requirement" @bind-Value="employeeReservation.Requirement" />
+    </div>
+
+    
+    <button type="submit" class="btn btn-primary">Update</button>
+ </EditForm>
+
+@code {
+
+    private EmployeeReservation employeeReservation = new EmployeeReservation();
+    [Parameter]
+    public int ID { get; set; }
+    [Inject]
+    InterfaceAPI InterfaceAPI { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        employeeReservation = await InterfaceAPI.PutgetEmployeeReservation(ID);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Putsubmit()
+    {
+        bool result = await InterfaceAPI.PutEmployeeReservation(employeeReservation);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("Success", "EmployeeReservation Updated", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("Error", "EmployeeReservation Not Updated", "OK");
+        }
+    }
+}

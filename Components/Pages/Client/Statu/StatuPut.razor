@@ -1,0 +1,57 @@
+﻿@page "/client/statu/put/{Id:int}"
+@using testBT.Models;
+<h3>StatuPut</h3>
+
+<EditForm Model="@statu" OnValidSubmit="PutStatu">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label>Id</label>
+        <label>@statu.StatusId</label>
+    </div>
+
+    <div class="form-group col-md-4">
+        <label for="inputStatuName">StatuName</label>
+        <InputText id="inputStatuName" class="form-control" @bind-Value="statu.StatusName" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">更新</button>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+    [Inject]
+    private InterfaceAPI API { get; set; }
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    Status statu = new Status();
+
+    protected override async Task OnInitializedAsync()
+    {
+        statu = await API.PutgetStatus(Id);
+    }
+
+    private async Task PutStatu()
+    {
+        bool action =await Application.Current.MainPage.DisplayAlert("確認", "更新しますか？", "はい", "いいえ");
+        if (action)
+        {
+            bool result = await API.PutStatus(statu);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("更新", "更新しました", "OK");
+                
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("更新", "更新できませんでした", "OK");
+            }
+        }
+        
+    }
+
+}

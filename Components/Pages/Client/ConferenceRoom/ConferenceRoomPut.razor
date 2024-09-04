@@ -1,0 +1,54 @@
+﻿@page "/client/conferenceroom/put/{Id:int}"
+@using testBT.Models
+<h3>ConferenceRoomPut</h3>
+
+<EditForm Model="@conferenceRoom" OnValidSubmit="PutSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="inputId">ID</label>
+        
+    </div>
+
+    <div class="form-group">
+        <label for="inputName">Name</label>
+        <InputText id="inputName" class="form-control" @bind-Value="conferenceRoom.ConferenceRoomName" />
+    </div>
+    <div class="form-group">
+        <label for="inputCapacity">Capacity</label>
+        <InputNumber id="inputCapacity" class="form-control" @bind-Value="conferenceRoom.ConferenceRoomCapacity" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    private ConferenceRoom conferenceRoom = new ConferenceRoom();
+    [Parameter]
+    public int Id { get; set; }
+    [Inject]
+    private InterfaceAPI interfaceAPI { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        conferenceRoom = await interfaceAPI.PutgetConferenceRoom(Id);
+
+    }
+
+    private async Task PutSubmit()
+    {
+        // UserInfo user = await interfaceAPI.GetUserDate();
+        // conferenceRoom.UpdateUser = user.Id;
+
+        var result = await interfaceAPI.PutConferenceRoom(conferenceRoom);
+        if (result)
+        {
+            await Application.Current.MainPage.DisplayAlert("更新", "更新しました", "OK");
+        }
+        else
+        {
+            await Application.Current.MainPage.DisplayAlert("更新", "更新できませんでした", "OK");
+        }
+    }
+}

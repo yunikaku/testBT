@@ -1,0 +1,143 @@
+﻿@page "/client/company/employee/list"
+
+@using  testBT.Models;
+
+<h3>ClientCompanyEmployeeList</h3>
+
+<EditForm Model="@searchClientCompanyEmployee" OnValidSubmit="Searchsubmit">
+    @* <DataAnnotationsValidator/> *@
+    <ValidationSummary/>
+
+    <div>
+        <label for="Id" >ID</label>
+        <InputNumber id="Id" class="form-control" @bind-Value="searchClientCompanyEmployee.Id" />
+    </div>
+
+    <div>
+        <label for="Name">Name</label>
+        <InputText id="Name" class="form-control" @bind-Value="searchClientCompanyEmployee.Name" />
+    </div>
+
+    <div>
+        <label for="Name">NameKana</label>
+        <InputText id="NameKana" class="form-control" @bind-Value="searchClientCompanyEmployee.NameKana" />
+    </div>
+    <div>
+        <label for="ClientCompanyId">ClientCompanyId</label>
+        <InputNumber id="ClientCompanyId" class="form-control" @bind-Value="searchClientCompanyEmployee.ClientCompanyId" />
+    </div>
+    <div>
+        <label for="Section">Section</label>
+        <InputText id="Section" class="form-control" @bind-Value="searchClientCompanyEmployee.Section" />
+    </div>
+    <div>
+        <label for="Position">Position</label>
+        <InputText id="Position" class="form-control" @bind-Value="searchClientCompanyEmployee.Position" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Search</button>
+</EditForm>
+
+<br />
+<button @onclick="()=>Addsubmit()">社員追加</button>
+<br />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ClientCompanyEmployeeId</th>
+            <th>ClientCompanyEmployeeName</th>
+            <th>ClientCompanyEmployeeNameKana</th>
+            <th>ClientCompanyEmployeePhoneNumber</th>
+            <th>ClientCompanyEmployeeEmail</th>
+            <th>ClientCompanyEmployeesSection</th>
+            <th>ClientCompanyEmployeesPosition</th>
+            <th>ClientCompanyId</th>
+            <th>ClientCompanyName</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (clientCompanyEmployees != null)
+        {
+            foreach (var clientCompanyEmployee in clientCompanyEmployees)
+            {
+                <tr>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesId</td>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesName</td>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesNameKana</td>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesPhoneNumber</td>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesEmail</td>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesSection</td>
+                    <td>@clientCompanyEmployee.ClientCompanyEmployeesPosition</td>
+                    <td>@clientCompanyEmployee.ClientCompanyId</td>
+                    <td>@clientCompanyEmployee.ClientCompanyName</td>
+
+                    <td><button @onclick="()=>Putsubmit(clientCompanyEmployee.ClientCompanyEmployeesId)">編集</button></td>
+                    <td><button @onclick="()=>Deletesubmit(clientCompanyEmployee)">削除</button></td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+
+
+@code {
+
+    List<ClientCompanyEmployee> clientCompanyEmployees = new List<ClientCompanyEmployee>();
+    SearchClientCompanyEmployee searchClientCompanyEmployee = new SearchClientCompanyEmployee();
+
+
+    [Inject]
+    private InterfaceAPI interfaceAPI { get; set; }
+    [Inject]
+    NavigationManager NavigationManager { get; set; }   
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientCompanyEmployees = await interfaceAPI.GetClientCompanyEmployees(searchClientCompanyEmployee);
+    }
+
+    private async Task Searchsubmit()
+    {
+        clientCompanyEmployees.Clear();
+        clientCompanyEmployees = await interfaceAPI.GetClientCompanyEmployees(searchClientCompanyEmployee);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Addsubmit()
+    {
+        NavigationManager.NavigateTo("/client/company/employee/add");
+    }
+
+    private void Putsubmit(int Id)
+    {
+
+        NavigationManager.NavigateTo($"/client/company/employee/put/{Id}");
+    }
+
+    private async void Deletesubmit(ClientCompanyEmployee clientCompanyEmployee)
+    {
+        var action =await Application.Current.MainPage.DisplayAlert("削除", clientCompanyEmployee+"を削除しますか？", "はい", "いいえ");
+        if (action)
+        {
+            bool result = await interfaceAPI.DeleteClientCompanyEmployee(clientCompanyEmployee.ClientCompanyEmployeesId);
+            if (result)
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除しました", "OK");
+                clientCompanyEmployees = await interfaceAPI.GetClientCompanyEmployees(searchClientCompanyEmployee);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("削除", "削除失敗", "OK");
+            }
+        }
+
+    }
+
+    
+
+}
